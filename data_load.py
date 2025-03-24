@@ -28,7 +28,9 @@ class AbalonDataset(Dataset):
         """we first take the row, then we pop Rings and Sex. Then we make a sex tensor which is a category, 
         then we make tensors of the numerical columns. We combine the sex and numerical into features. We also make a tensor of the dependent variable: Rings"""
         row = self.preprocess_data(self.data.iloc[index])
-        target_col = row.pop("Rings")
+        target_col = None
+        if "Rings" in row:
+            target_col = row.pop("Rings")
         sex_feature = row.pop("Sex")
         # we make the sex tensor separate because it must be onehot encoded
         sex_tensor = torch.nn.functional.one_hot(torch.tensor(sex_feature, dtype=torch.long), num_classes=3).to(torch.float32)
@@ -37,7 +39,12 @@ class AbalonDataset(Dataset):
         standardized_numerical_tensor = (numerical_tensor - self.mean) / self.std
         features = torch.concat([sex_tensor, standardized_numerical_tensor])
 
-        target = torch.tensor(target_col, dtype=torch.float32).view(1)
+        # when target_col is none, the data is training or validation data
+        if target_col is not None:
+            target = torch.tensor(target_col, dtype=torch.float32).view(1)
+        # in case the dataset is the test dataset where there is no Rings column, we need to create an empty target
+        else:
+            target = torch.tensor([0])
         return features, target
 
     @staticmethod
