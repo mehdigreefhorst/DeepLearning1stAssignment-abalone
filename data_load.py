@@ -1,10 +1,6 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
 class AbalonDataset(Dataset):
@@ -36,7 +32,7 @@ class AbalonDataset(Dataset):
         sex_tensor = torch.nn.functional.one_hot(torch.tensor(sex_feature, dtype=torch.long), num_classes=3).to(torch.float32)
         numerical_tensor = torch.tensor(row, dtype=torch.float32)
         # standardize the numerical features
-        standardized_numerical_tensor = (numerical_tensor - self.mean) / self.std
+        standardized_numerical_tensor = (numerical_tensor - self.mean) / (4* self.std)
         features = torch.concat([sex_tensor, standardized_numerical_tensor])
 
         # when target_col is none, the data is training or validation data
